@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  IgnorableNamespaces="uap uap3 mp">
+
+  <Identity
+    Name="d8035bca-2003-4466-848c-83ee3b600930"
+    Publisher="CN=YuSuiXian"
+    Version="1.0.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="d8035bca-2003-4466-848c-83ee3b600930" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+
+  <Properties>
+    <DisplayName>空荧酒馆-悬浮窗</DisplayName>
+    <PublisherDisplayName>YuSuiXian</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="空荧酒馆悬浮窗地图.App">
+      <uap:VisualElements
+        DisplayName="空荧酒馆悬浮窗地图"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        Description="空荧酒馆-悬浮窗"
+        BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png" ShortName="空荧酒馆地图">
+        </uap:DefaultTile >
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        <uap:LockScreen BadgeLogo="Assets\BadgeLogo.png" Notification="badge"/>
+      </uap:VisualElements>
+		<Extensions>
+			<uap3:Extension Category="windows.appExtension">
+				<uap3:AppExtension Name="microsoft.gameBarUIExtension"
+								   Id="YuanShenSite"
+								   DisplayName="空荧酒馆"
+								   Description="空荧酒馆 原神地图"
+								   PublicFolder="GameBar">
+					<uap3:Properties>
+						<GameBarWidget Type ="Standard">
+							<HomeMenuVisible>true</HomeMenuVisible>
+							<PinningSupported>true</PinningSupported>
+							<Window>
+								<Size>
+									<Height>600</Height>
+									<Width>600</Width>
+								</Size>
+								<ResizeSupported>
+									<Horizontal>true</Horizontal>
+									<Vertical>true</Vertical>
+								</ResizeSupported>
+							</Window>
+						</GameBarWidget>
+					</uap3:Properties>
+				</uap3:AppExtension>
+			</uap3:Extension>
+		</Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+  </Capabilities>
+</Package>
