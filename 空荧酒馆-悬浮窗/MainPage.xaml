@@ -8,10 +8,15 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls" 
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    
+
     <Grid Background="#00000000" >
         <Border Margin="0 0 0 0" CornerRadius="30" BorderBrush="Transparent">
-            <controls:WebView2 x:Name="webView" Source="https://yuanshen.site" />
+            <controls:WebView2 x:Name="webView" Source="https://yuanshen.site"/>
         </Border>
+        <Button x:Name="A" Height="100" Width="150" Click="A_Click"/>
+        <Button x:Name="B" Height="100" Width="100" Click="B_Click" Margin="0,345,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="C" Height="100" Width="50" Click="C_Click" Margin="0,240,0,0" VerticalAlignment="Top"/>
+
+        <TimePicker x:Name="timer" Margin="0,555,0,0" VerticalAlignment="Top"></TimePicker>
     </Grid>
 </Page>
