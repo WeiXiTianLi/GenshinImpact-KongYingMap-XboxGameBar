@@ -16,6 +16,9 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.Web.Http;
+using Windows.Data.Json;
+using System.Timers;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -26,30 +29,162 @@ namespace 空荧酒馆_悬浮窗
     /// </summary>
     public sealed partial class MainPage : Page
     {
+
+        public string token = "";
+        //public HttpClient httpClientWS = new HttpClient();
+        string urlws = "http://localhost:32333/ws/";
         public MainPage()
         {
             this.InitializeComponent();
             this.Loaded += MainPage_Loaded;
+            
+            // 定时器100ms触发一次
+            Timer timer = new Timer();
+            timer.Interval = 5000;
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+        }
+
+        private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            // 检查token是否有效
+            if (token != "")
+            {
+                getPosition();
+                //getDirection();
+                //getRotation();
+            }
+            else
+            {
+                token = await getTokenAsync();
+            }
+        }
+        private async void getPosition()
+        {
+            string id = DateTime.Now.ToString() + Math.Round(1000 + Math.Round((decimal)100, 0) * 1000).ToString();
+            JsonObject body = new JsonObject();
+            body.Add("action", JsonValue.CreateStringValue("GetPosition"));
+            body.Add("data", JsonValue.CreateStringValue(""));
+
+            JsonObject reqjson = new JsonObject();
+            reqjson.Add("id", JsonValue.CreateStringValue(id));
+            reqjson.Add("action", JsonValue.CreateStringValue("api"));
+            JsonObject data = new JsonObject();
+            data.Add("url", JsonValue.CreateStringValue("/api/cvautotrack"));
+            data.Add("method", JsonValue.CreateStringValue("POST"));
+            data.Add("body", body);
+            reqjson.Add("data", data);
+            
+            HttpClient httpClientWS = new HttpClient();
+            httpClientWS.DefaultRequestHeaders.Clear();
+            httpClientWS.DefaultRequestHeaders.Add("Origin", "http://localhost:32333");
+            HttpResponseMessage response = await httpClientWS.PostAsync(new Uri(urlws + token), new HttpStringContent(reqjson.ToString(), Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            JsonObject pos = JsonObject.Parse(responseBody);
+            if (pos.GetNamedString("body").Contains("status"))
+            {
+                JsonObject data1 = JsonObject.Parse(pos.GetNamedString("body"));
+                if (data1.GetNamedBoolean("status"))
+                {
+                    JsonArray data2 = JsonArray.Parse(data1.GetNamedString("data"));
+                    updatePosition(data2.GetNumberAt(0), data2.GetNumberAt(1));
+                }
+            }
+        }
+        private async void getDirection()
+        {
+            string id = DateTime.Now.ToString() + Math.Round(1000 + Math.Round((decimal)100, 0) * 1000).ToString();
+            JsonObject body = new JsonObject();
+            body.Add("action", JsonValue.CreateStringValue("GetDirection"));
+            body.Add("data", JsonValue.CreateStringValue(""));
+
+            JsonObject reqjson = new JsonObject();
+            reqjson.Add("id", JsonValue.CreateStringValue(id));
+            reqjson.Add("action", JsonValue.CreateStringValue("api"));
+            JsonObject data = new JsonObject();
+            data.Add("url", JsonValue.CreateStringValue("/api/cvautotrack"));
+            data.Add("method", JsonValue.CreateStringValue("POST"));
+            data.Add("body", body);
+            reqjson.Add("data", data);
+            
+            HttpClient httpClientWS = new HttpClient();
+            httpClientWS.DefaultRequestHeaders.Clear();
+            httpClientWS.DefaultRequestHeaders.Add("Origin", "http://localhost:32333");
+            HttpResponseMessage response = await httpClientWS.PostAsync(new Uri(urlws + token), new HttpStringContent(reqjson.ToString(), Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            JsonObject dir = JsonObject.Parse(responseBody);
+            if (dir.GetNamedString("body").Contains("status"))
+            {
+                JsonObject data1 = JsonObject.Parse(dir.GetNamedString("body"));
+                if (data1.GetNamedBoolean("status"))
+                {
+                    updatePosition(0 - data1.GetNamedNumber("data"));
+                }
+            }
+
+        }
+        private async void getRotation()
+        {
+            string id = DateTime.Now.ToString() + Math.Round(1000 + Math.Round((decimal)100, 0) * 1000).ToString();
+            JsonObject body = new JsonObject();
+            body.Add("action", JsonValue.CreateStringValue("GetRotation"));
+            body.Add("data", JsonValue.CreateStringValue(""));
+
+            JsonObject reqjson = new JsonObject();
+            reqjson.Add("id", JsonValue.CreateStringValue(id));
+            reqjson.Add("action", JsonValue.CreateStringValue("api"));
+            JsonObject data = new JsonObject();
+            data.Add("url", JsonValue.CreateStringValue("/api/cvautotrack"));
+            data.Add("method", JsonValue.CreateStringValue("POST"));
+            data.Add("body", body);
+            reqjson.Add("data", data);
+            
+            HttpClient httpClientWS = new HttpClient();
+            httpClientWS.DefaultRequestHeaders.Clear();
+            httpClientWS.DefaultRequestHeaders.Add("Origin", "http://localhost:32333");
+            HttpResponseMessage response = await httpClientWS.PostAsync(new Uri(urlws + token), new HttpStringContent(reqjson.ToString(), Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            JsonObject rot = JsonObject.Parse(responseBody);
+            if (rot.GetNamedString("body").Contains("status"))
+            {
+                JsonObject data1 = JsonObject.Parse(rot.GetNamedString("body"));
+                if (data1.GetNamedBoolean("status"))
+                {
+                    updateFov(0 - data1.GetNamedNumber("data"));
+                }
+            }
+        }
+
+        private async void updatePosition(double x, double y)
+        {
+            string js = "window.__CVAutoTrack__.updatePosition({ x: "+x.ToString()+", y:"+y.ToString()+"});" ;
+            await webView.ExecuteScriptAsync(js);
+        }
+
+
+        private async void updatePosition(double a)
+        {
+            string js = "window.__CVAutoTrack__.updatePosition({ deg: " + a.ToString() + "});";
+            await webView.ExecuteScriptAsync(js);
+        }
+
+
+        private async void updateFov(double a)
+        {
+            string js = "window.__CVAutoTrack__.updateFov(" + a.ToString() + ");";
+            await webView.ExecuteScriptAsync(js);
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
             await webView.EnsureCoreWebView2Async();
-            webView.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.Document);
-            webView.CoreWebView2.WebResourceResponseReceived += CoreWebView2_WebResourceResponseReceived; ;
             webView.CoreWebView2.DOMContentLoaded += CoreWebView2_DOMContentLoaded;
             webView.CoreWebView2.OpenDevToolsWindow();
         }
 
-        private void CoreWebView2_WebResourceResponseReceived(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceResponseReceivedEventArgs args)
-        {
-            args.Response.Headers.Append(new KeyValuePair<string, string>("Content-Security-Policy", "default-src 'none';"));
-
-        }
-
-        private void CoreWebView2_WebResourceRequested(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs args)
-        {
-               }
 
         private void CoreWebView2_DOMContentLoaded(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2DOMContentLoadedEventArgs args)
         {
@@ -292,137 +427,7 @@ class CVAutoTrack {
 window.__CVAutoTrack__ = new CVAutoTrack();
 window.__CVAutoTrack__.visible();
 ";
-            webView.ExecuteScriptAsync(js);
-            string js2 = @" 
-
-!(function (e, n) {
-    'object' == typeof exports && 'undefined' != typeof module
-        ? (module.exports = n())
-        : 'function' == typeof define && define.amd
-        ? define(n)
-        : ((e = e || self).mitt = n());
-})(this, function () {
-    return function (e) {
-        return {
-            all: (e = e || new Map()),
-            on: function (n, t) {
-                var f = e.get(n);
-                f ? f.push(t) : e.set(n, [t]);
-            },
-            off: function (n, t) {
-                var f = e.get(n);
-                f && (t ? f.splice(f.indexOf(t) >>> 0, 1) : e.set(n, []));
-            },
-            emit: function (n, t) {
-                var f = e.get(n);
-                f &&
-                    f.slice().map(function (e) {
-                        e(t);
-                    }),
-                    (f = e.get('*')) &&
-                        f.slice().map(function (e) {
-                            e(n, t);
-                        });
-            },
-        };
-    };
-});
-
-const ev = new mitt();
-
-const webControlMAP = {
-  token: '',
-  ws: undefined,
-  authorize: async function () {
-      if (this.ws) return;
-      const res = await fetch('http://localhost:32333/token', { method: 'POST' });
-      if (!res.ok) return;
-      const data = await res.json();
-      this.token = data.token;
-      this.ws = new WebSocket('ws://localhost:32333/ws/' + this.token);
-      this.ws.onclose = () => {
-          this.ws = undefined;
-      };
-      this.ws.onmessage = (e) => {
-        const data = JSON.parse(e.data)
-        ev.emit(data.id || data.action, data.data)
-      };
-      await new Promise((resolve)=>this.ws.onopen=resolve)
-      return true;
-  },
-  wsInvoke(body) {
-      if (!this.ws) throw new Error('WebSocket not connected')
-      const id = Math.round(Date.now() * 1000 + Math.random() * 1000).toString(16)
-      const reqjson = {
-          id,
-          action: 'api',
-          data: {
-              url:'/api/cvautotrack',
-              method:""POST"",
-              body:JSON.stringify(body)
-          },
-      }
-      const resp = new Promise((resolve) => {
-          ev.on(id, resolve)
-      })
-      this.ws.send(JSON.stringify(reqjson))
-      return resp
-  },
-  async mapInit(){
-      const load_res = await webControlMAP.wsInvoke({
-          action:""load"",
-          data:[]
-      })
-      if(load_res.body.status===false)return alert(""跟踪地图加载失败！"");
-      const d = await webControlMAP.wsInvoke({
-          action:""init"",
-          data:[]
-      })
-      if(d.body.status===false)return alert(""跟踪地图初始化失败！"");
-      await webControlMAP.wsInvoke({
-          action:""SetWorldCenter"",
-          data:[2280,5878]
-      })
-      await webControlMAP.wsInvoke({
-          action:""SetWorldScale"",
-          data:[0.5]
-      })
-      setInterval(this.mapUpdate.bind(this),100)
-  },
-  async mapUpdate(){
-    if(window.__CVAutoTrack__.getTrackState())
-    {
-        const [pos,dir,rot] = await Promise.all([this.wsInvoke({
-          action:""GetPosition"",
-          data:[]
-      }),this.wsInvoke({
-          action:""GetDirection"",
-          data:[]
-      }),this.wsInvoke({
-          action:""GetRotation"",
-          data:[]
-      }),
-      ])
-      if(pos.body.status){
-          //pos.body.data[0]= pos.body.data[0]-2255
-          
-          window.__CVAutoTrack__.updatePosition({x: pos.body.data[0], y: pos.body.data[1]});
-      }
-      if(dir.body.status){
-        window.__CVAutoTrack__.updatePosition({deg:0-dir.body.data});
-      }
-      if(rot.body.status){
-          window.__CVAutoTrack__.updateFov(0-rot.body.data);
-      }
-    }
-  }
-};
-
-
-await webControlMap.authorize()
-await webControlMap.mapinit()
-                        ";
-        webView.ExecuteScriptAsync(js2);
+           webView.ExecuteScriptAsync(js);
         }
 
         /// <summary>
@@ -440,31 +445,31 @@ await webControlMap.mapinit()
             webView.ExecuteScriptAsync(js);
         }
 
-        private void A_Click(object sender, RoutedEventArgs e)
+        private async Task<string> getTokenAsync()
         {
-            flyto_js(200, 2000);
-        }
-        private void B_Click(object sender, RoutedEventArgs e)
-        {
-            /*
-             * window.injectCursor.style.left = '200px';
-                           window.injectCursor.style.top = '200px';
-             * */
-            string js = @"
-                        window.injectCursor.style.visibility = 'visible'
-                        ";
-            webView.ExecuteScriptAsync(js);
-        }
-        private void C_Click(object sender, RoutedEventArgs e)
-        {
-            string js = @"window.injectCursor.style.transform = 'translate(-50%, -50%) rotate(-30deg)';";
-            webView.ExecuteScriptAsync(js);
-        }
-
-        private async void A_Copy_Click(object sender, RoutedEventArgs e)
-        {
-           // string js = js_text.Text;
-           //await webView.ExecuteScriptAsync(js);
+            string url = "http://localhost:32333/token";
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    var kvp = new List<KeyValuePair<string, string>>
+                    { };
+                    client.DefaultRequestHeaders.Add(new KeyValuePair<string, string>("Origin", "http://localhost:32333"));
+                    HttpResponseMessage response = await client.PostAsync(new Uri(url), new HttpFormUrlEncodedContent(kvp));
+                    if (response.EnsureSuccessStatusCode().StatusCode.ToString() == "Created")
+                    {
+                        string responseBody = await response.Content.ReadAsStringAsync();
+                        JsonObject body = JsonObject.Parse(responseBody);
+                        string token = body["token"].GetString();
+                        return token;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return "";
+                }
+            }
+            return "";
         }
     }
 }
