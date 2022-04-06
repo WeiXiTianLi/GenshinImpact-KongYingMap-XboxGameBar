@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("空荧酒馆-悬浮窗")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("维系天理")]
 [assembly: AssemblyProduct("空荧酒馆-悬浮窗")]
-[assembly: AssemblyCopyright("Copyright ©  2022")]
+[assembly: AssemblyCopyright("Copyright ©  2022 维系天理")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

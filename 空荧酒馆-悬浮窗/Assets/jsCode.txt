@@ -1,60 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Storage.Streams;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-
-// https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
-
-namespace 空荧酒馆_悬浮窗
-{
-    /// <summary>
-    /// 可用于自身或导航至 Frame 内部的空白页。
-    /// </summary>
-    public sealed partial class MainPage : Page
-    {
-        public MainPage()
-        {
-            this.InitializeComponent();
-            this.Loaded += MainPage_Loaded;
-        }
-
-        private async void MainPage_Loaded(object sender, RoutedEventArgs e)
-        {
-            await webView.EnsureCoreWebView2Async();
-            webView.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.Document);
-            webView.CoreWebView2.WebResourceResponseReceived += CoreWebView2_WebResourceResponseReceived; ;
-            webView.CoreWebView2.DOMContentLoaded += CoreWebView2_DOMContentLoaded;
-            webView.CoreWebView2.OpenDevToolsWindow();
-        }
-
-        private void CoreWebView2_WebResourceResponseReceived(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceResponseReceivedEventArgs args)
-        {
-            args.Response.Headers.Append(new KeyValuePair<string, string>("Content-Security-Policy", "default-src 'none';"));
-
-        }
-
-        private void CoreWebView2_WebResourceRequested(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs args)
-        {
-               }
-
-        private void CoreWebView2_DOMContentLoaded(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2DOMContentLoadedEventArgs args)
-        {
-            string js = @" 
-const INJECT_NAME = 'CVAutoTrack';
+﻿const INJECT_NAME = 'CVAutoTrack';
 const INJECT_Version = '1.0';
 const INJECT_ICON_URL = 'https://assets.yuanshen.site/icons/MapPoint.png';
 const INJECT_ICON_FOV_URL = 'https://assets.yuanshen.site/icons/MapPointFov.png';
@@ -290,10 +234,6 @@ class CVAutoTrack {
 };
 
 window.__CVAutoTrack__ = new CVAutoTrack();
-window.__CVAutoTrack__.visible();
-";
-            webView.ExecuteScriptAsync(js);
-            string js2 = @" 
 
 !(function (e, n) {
     'object' == typeof exports && 'undefined' != typeof module
@@ -328,6 +268,7 @@ window.__CVAutoTrack__.visible();
     };
 });
 
+let vue, main, map, markers, drawnItems, icon, COCOGOAT_USER_MARKER,COCOGOAT_USER_SIGHT;
 const ev = new mitt();
 
 const webControlMAP = {
@@ -418,53 +359,6 @@ const webControlMAP = {
   }
 };
 
-
-await webControlMap.authorize()
-await webControlMap.mapinit()
-                        ";
-        webView.ExecuteScriptAsync(js2);
-        }
-
-        /// <summary>
-        /// 地图自动平移到指定位置
-        /// </summary>
-        /// <param name="x">经度</param>
-        /// <param name="y">纬度</param>
-        private void flyto_js(float x,float y)
-        {
-            //工具类.平面坐标 a = 工具类.坐标转换_从经纬度(x, y);
-            string x_string = x.ToString();
-            string y_string = y.ToString();
-
-            string js = "map.flyTo([" + x_string + "," + y_string + "]);";
-            webView.ExecuteScriptAsync(js);
-        }
-
-        private void A_Click(object sender, RoutedEventArgs e)
-        {
-            flyto_js(200, 2000);
-        }
-        private void B_Click(object sender, RoutedEventArgs e)
-        {
-            /*
-             * window.injectCursor.style.left = '200px';
-                           window.injectCursor.style.top = '200px';
-             * */
-            string js = @"
-                        window.injectCursor.style.visibility = 'visible'
-                        ";
-            webView.ExecuteScriptAsync(js);
-        }
-        private void C_Click(object sender, RoutedEventArgs e)
-        {
-            string js = @"window.injectCursor.style.transform = 'translate(-50%, -50%) rotate(-30deg)';";
-            webView.ExecuteScriptAsync(js);
-        }
-
-        private async void A_Copy_Click(object sender, RoutedEventArgs e)
-        {
-           // string js = js_text.Text;
-           //await webView.ExecuteScriptAsync(js);
-        }
-    }
-}
+window.__CVAutoTrack__.visible()
+await webcontrolMap.authorize()
+await webcontrolMap.mapinit()
