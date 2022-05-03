@@ -8,7 +8,7 @@ branches:
     - master
 
 environment:
-    MyProjectDir: C:\projects\genshinimpact-kongyingmap-xboxgamebar\
+    MyProjectDir: C:\projects\genshinimpact-kongyingmap-xboxgamebar
     OpenCvDir: C:\projects\opencv\
     OpenCvUrl: https://github.com/GengGode/opencv450Release/releases/download/v1.0/Release.zip
     ProjectName: 空荧酒馆-悬浮窗
@@ -23,13 +23,13 @@ before_build:
     #- dir  %OpenCvDir%
 
 build_script:
-    - MSBuild %MyProjectDir%*.sln
+    - MSBuild %MyProjectDir%\*.sln
     
 after_build:
 
     
     - echo %APPVEYOR_BUILD_VERSION% >version.tag
-    - 7z a %ProjectName%.7z %MyProjectDir%x64\build\*
+    - 7z a %ProjectName%.7z %MyProjectDir%\x64\build\*
 
     - appveyor PushArtifact version.tag
     - appveyor PushArtifact %ProjectName%.7z
