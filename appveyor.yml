@@ -8,7 +8,7 @@ branches:
     - master
 
 environment:
-    MyProjectDir: C:\projects\空荧酒馆-悬浮窗\
+    MyProjectDir: C:\projects\genshinimpact-kongyingmap-xboxgamebar\
     OpenCvDir: C:\projects\opencv\
     OpenCvUrl: https://github.com/GengGode/opencv450Release/releases/download/v1.0/Release.zip
     ProjectName: 空荧酒馆-悬浮窗
