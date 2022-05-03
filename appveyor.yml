@@ -21,8 +21,7 @@ before_build:
     #- dir  %OpenCvDir%
 
 build_script:
-    - 
-    - MSBuild %MyProjectDir%\*.sln
+    - MSBuild
     
 after_build:
 
