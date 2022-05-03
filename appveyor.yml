@@ -21,6 +21,7 @@ before_build:
     #- dir  %OpenCvDir%
 
 build_script:
+    - chcp 65001
     - MSBuild
     
 after_build:
