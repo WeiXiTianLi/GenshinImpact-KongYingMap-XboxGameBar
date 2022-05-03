@@ -1,0 +1,60 @@
+version: '1.2.{build}'
+os: Visual Studio 2022
+configuration: Release
+platform:
+    - x64
+branches:
+  only:
+    - master
+
+environment:
+    MyProjectDir: C:\projects\¿ÕÓ«¾Æ¹Ý-Ðü¸¡´°\
+    OpenCvDir: C:\projects\opencv\
+    OpenCvUrl: https://github.com/GengGode/opencv450Release/releases/download/v1.0/Release.zip
+    ProjectName: ¿ÕÓ«¾Æ¹Ý-Ðü¸¡´°
+    ProJectExeName: ¿ÕÓ«¾Æ¹Ý-Ðü¸¡´°
+skip_tags: true
+  
+install:
+    - ps: $env:TIME_STRING=(get-date -UFormat "%Y%m%d%a").ToString()
+
+before_build: 
+    #- dir  %MyProjectDir%
+    #- dir  %OpenCvDir%
+
+build_script:
+    - MSBuild %MyProjectDir%%ProjectName%.sln
+    
+after_build:
+
+    
+    - echo %APPVEYOR_BUILD_VERSION% >version.tag
+    - 7z a %ProjectName%.7z %MyProjectDir%x64\build\*
+
+    - appveyor PushArtifact version.tag
+    - appveyor PushArtifact %ProjectName%.7z
+    
+#artifacts:
+    #- path: build/Release
+    #artifacts path name must be appveyor API
+  
+deploy:
+    - provider: GitHub
+      description: '$(APPVEYOR_PROJECT_SLUG): cvAutoTrack Dll $(APPVEYOR_BUILD_VERSION)' 
+      auth_token:
+         secure: G/Fzf0bGIhqqt+XvsC5AXrZVNs3atGU7XCzJxqiUZEwOxoZrjxk87ENI/OitnXCo
+      draft: false
+      tag: $(APPVEYOR_BUILD_VERSION)
+      force_update: true
+      on:  
+        APPVEYOR_REPO_TAG: false
+
+notifications:
+  - provider: Email
+    to:
+      - ysx20201030@163.com
+    subject: '{{status}}: {{projectName}} {{buildVersion}}'                  # optional
+    message: "Commit #{{commitId}} by {{commitAuthor}} on {{commitDate}}: {{commitMessage}}"    # optional
+    on_build_success: true
+    on_build_failure: false
+    on_build_status_changed: false

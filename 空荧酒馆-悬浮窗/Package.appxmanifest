@@ -8,9 +8,9 @@
   IgnorableNamespaces="uap uap3 mp">
 
   <Identity
-    Name="d8035bca-2003-4466-848c-83ee3b600930"
-    Publisher="CN=YuSuiXian"
-    Version="1.0.4.0" />
+    Name="WeiXiTianLi.Xbox.KongYingJiuGuan"
+    Publisher="CN=维系天理"
+    Version="1.2.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="d8035bca-2003-4466-848c-83ee3b600930" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

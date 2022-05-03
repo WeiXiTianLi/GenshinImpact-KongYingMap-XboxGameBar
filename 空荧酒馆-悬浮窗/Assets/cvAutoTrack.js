@@ -1,92 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Windows.Data.Json;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Storage.Streams;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-using Windows.Web.Http;
-
-// https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
-
-namespace 空荧酒馆_悬浮窗
-{
-    /// <summary>
-    /// 可用于自身或导航至 Frame 内部的空白页。
-    /// </summary>
-    public sealed partial class YuanShenSite_悬浮窗 : Page
-    {
-        public string token = "";
-        string urlws = "ws://localhost:32333/ws/";
-        public Windows.Networking.Sockets.MessageWebSocket messageWebSocket;
-        public YuanShenSite_悬浮窗()
-        {
-            this.InitializeComponent();
-            this.Loaded += MainPage_Loaded;
-        }
-
-        private async void MainPage_Loaded(object sender, RoutedEventArgs e)
-        {
-            await webView.EnsureCoreWebView2Async();
-            webView.CoreWebView2.DOMContentLoaded += CoreWebView2_DOMContentLoaded;
-        }
-
-        private void CoreWebView2_DOMContentLoaded(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2DOMContentLoadedEventArgs args)
-        {
-            string js = @"  
-                            let cursor = document.createElement('div')
-                            cursor.id = 'inject-user-cursor'
-                            window.injectCursor = cursor 
-                            document.body.appendChild(cursor)
-
-                            let style = document.createElement('style')
-                            style.innerHTML = `
-                                .danjixiazai, .enindex-btn, .jpindex-btn, .switch_content, .fankui, .genshin_pub, .genshin_art, .feixiaoqiu, .wiki{
-                                    display: none!important;
-                                } 
-                                .control-containor{
-                                    transform:scale(0.4);
-                                }
-                                #inject-user-cursor{
-                                    position: fixed;
-                                    visibility: hidden;
-                                    left: 50vw;
-                                    top: 50vh;
-                                    width: 36px;
-                                    height: 36px;
-                                    transform: translate(-50%, -50%);
-                                    transition: all .5s;
-                                    transform-origin: center;
-                                    z-index: 999999999999999;
-                                    background-image: url(https://assets.yuanshen.site/icons/483.png);
-                                    background-repeat: no-repeat;                                
-                                    background-position: center;        
-                                }  
-                            `
-                            document.head.appendChild(style)
-
-const INJECT_NAME = 'CVAutoTrack';
+﻿const INJECT_NAME = 'CVAutoTrack';
 const INJECT_Version = '1.0';
 const INJECT_ICON_URL = 'https://assets.yuanshen.site/icons/MapPoint.png';
 const INJECT_ICON_FOV_URL = 'https://assets.yuanshen.site/icons/MapPointFov.png';
 const INJECT_ICON_CONFIG = {
-  width: 52,
-  height: 52,
+    width: 52,
+    height: 52,
 };
 const INJECT_BUTTON_CONFIG = {
-  width: 54,
-  height: 54,
+    width: 54,
+    height: 54,
 };
 const MARKER_STYLE = document.createElement('style');
 const USER_POSITION_FOLLOW_BUTTON = document.createElement('button');
@@ -98,13 +20,13 @@ const USER_POSITION_FOLLOW_BUTTON_ICON = `
 
 
 const parseDom = (arg) => {
-  const _DOM_CONTAINER = document.createElement(""div"");
-  _DOM_CONTAINER.innerHTML = arg;
-  return _DOM_CONTAINER.childNodes[0];
+    const _DOM_CONTAINER = document.createElement(""div"");
+    _DOM_CONTAINER.innerHTML = arg;
+    return _DOM_CONTAINER.childNodes[0];
 };
 
 const APP_LOGO_CONTAINER = parseDom(
-  `<svg width='339' height='53' viewBox='0 0 339 53' fill='none' xmlns='http://www.w3.org/2000/svg' id='app-logo'>
+    `<svg width='339' height='53' viewBox='0 0 339 53' fill='none' xmlns='http://www.w3.org/2000/svg' id='app-logo'>
   <g filter='url(#filter0_d_224_55)'>
     <path d='M27.89 32.182H23.002V24.148H29.866C30.23 24.148 30.516 24.018 30.594 23.732C29.45 22.64 27.5 20.976 27.5 20.976L25.758 23.42H11.718L11.926 24.148H19.102V32.182H8.98804L9.19604 32.91H32.206C32.596 32.91 32.882 32.78 32.96 32.494C31.764 31.35 29.71 29.66 29.71 29.66L27.89 32.182ZM16.45 15.126C15.436 17.388 12.68 20.976 9.66404 22.926L9.79404 23.108C13.98 22.198 17.724 20.144 19.908 18.116C20.792 18.168 21.208 17.934 21.364 17.57L16.45 15.126ZM30.152 11.772L28.176 13.748H22.222C24.354 12.838 24.666 9.01601 18.114 9.79601L18.01 9.92601C18.92 10.654 19.544 12.032 19.518 13.358C19.752 13.514 20.012 13.644 20.246 13.748H12.732C12.55 13.15 12.29 12.526 11.952 11.876L11.64 11.902C11.848 13.358 10.964 14.684 10.158 15.204C9.17004 15.646 8.46804 16.504 8.80604 17.648C9.19604 18.844 10.522 19.26 11.562 18.662C12.628 18.09 13.304 16.582 12.914 14.476H28.41C28.332 15.152 28.202 15.958 28.072 16.686C26.59 16.218 24.692 15.906 22.3 15.906L22.118 16.114C24.692 17.57 27.76 20.196 29.372 22.562C32.466 23.602 33.844 19.546 29.502 17.284C30.62 16.686 31.738 15.932 32.492 15.308C33.064 15.282 33.324 15.204 33.532 14.944L30.152 11.772Z' fill='white' />
     <path d='M54.306 22.172C55.554 21.418 57.218 20.196 58.232 19.364C58.778 19.338 59.038 19.26 59.246 19.026L55.918 15.88L53.968 17.804H38.81C38.654 17.31 38.42 16.764 38.134 16.218L37.848 16.244C38.03 17.31 37.198 18.324 36.496 18.74C35.456 19.13 34.702 19.962 34.962 21.21C35.3 22.484 36.678 22.952 37.718 22.458C38.758 21.964 39.408 20.534 38.992 18.532H54.254C54.228 19.624 54.124 21.028 54.046 21.99L52.59 21.028C51.914 22.9 51.082 24.928 50.328 26.462C49.444 25.526 48.846 24.46 48.482 23.264C48.56 22.354 48.612 21.392 48.664 20.378C49.262 20.3 49.522 20.04 49.574 19.676L44.738 19.286C44.66 25.838 44.946 30.492 34.364 34.132L34.52 34.47C44.868 32.442 47.468 29.14 48.274 24.798C49.158 28.88 51.264 32.598 56.334 34.522C56.542 32.416 57.582 31.35 59.428 30.96V30.648C55.606 29.92 52.928 28.776 51.134 27.242C52.72 26.332 54.176 25.214 55.502 23.992C56.1 24.174 56.516 24.018 56.698 23.758L54.306 22.172ZM41.098 20.898C40.864 22.64 39.434 24.304 38.472 24.954C37.536 25.578 37.042 26.592 37.536 27.684C38.16 28.906 39.954 29.088 40.812 28.126C42.034 26.8 42.528 24.33 41.384 20.924L41.098 20.898ZM54.618 13.228H53.11V10.732C53.786 10.628 53.994 10.394 54.02 10.03L49.366 9.64001V13.228H44.53V10.732C45.206 10.628 45.414 10.368 45.44 10.03L40.864 9.64001V13.228H34.546L34.728 13.956H40.864V17.154H41.462C43.074 17.154 44.53 16.634 44.53 16.322V13.956H49.366V16.972H49.964C51.628 16.972 53.11 16.504 53.11 16.192V13.956H58.882C59.272 13.956 59.558 13.826 59.61 13.54C58.466 12.422 56.412 10.784 56.412 10.784L54.618 13.228Z' fill='white' />
@@ -165,8 +87,8 @@ MARKER_STYLE.innerHTML = `
   --cv-marker-display: none;
   --cv-marker-track-display: none;
   --cv-marker-rotate: 0deg;
-  --cv-marker-fov-rotate: -45deg;
-  --cv-marker-track-saturate: 0%;
+  --cv-marker-fov-rotate: 0deg;
+  --cv-marker-track-saturate: 0%; 
 }
 
 .user-position {
@@ -186,12 +108,11 @@ MARKER_STYLE.innerHTML = `
 }
 
 .user-position::before {
-  bottom: 50%;
-  left: 50%;
-  width: 250%;
-  height: 250%;
-  background-image: radial-gradient(100% 100% at 0% 100%, rgba(255,255,255,.8) 0%, rgba(255,255,255,.8) 0%, rgba(255,255,255,0.00) 100%, rgba(255,255,255,0.00) 100%);
-  transform-origin: bottom left;
+  top: -100%;
+  right: -100%;
+  width: 300%;
+  height: 300%;
+  background-image: url(${INJECT_ICON_FOV_URL});
   transform: rotate(var(--cv-marker-fov-rotate));
 }
 
@@ -272,307 +193,155 @@ MARKER_STYLE.innerHTML = `
 `;
 
 class CVAutoTrack {
-  // Init
-  constructor() {
-    this._last_x = 0;
-    this._last_y = 0;
-    this._last_deg = 0;
-    this.GS_MAP = null;
-    this.GS_L = null;
-    this.GS_USER_MARKER = null;
-    this.GS_USER_MARKER_VISIBLE = false;
-    this.GS_USER_TRACKING = false;
+    // Init
+    constructor() {
+        this._last_x = 0;
+        this._last_y = 0;
+        this._last_deg = 0;
+        this.GS_MAP = null;
+        this.GS_L = null;
+        this.GS_USER_MARKER = null;
+        this.GS_USER_MARKER_VISIBLE = false;
+        this.GS_USER_TRACKING = false;
 
-    if (map && L) this._init();
-    else window.addEventListener('load', () => {
-      this._init()
-    });
-  }
-
-  _init() {
-    if (!map || !L) return;
-
-    this.GS_MAP = map;
-    this.GS_L = L;
-
-    this._initMarker();
-    this._initStyle();
-    this._pageStyleRebuild();
-    this._initTrackButton();
-    this._hookMapEmitter();
-
-
-    console.warn(`[${INJECT_NAME}] Injected!`);
-  }
-
-  _pageStyleRebuild() {
-    [
-      "".leaflet-control-attribution"",
-      "".genshin_pub"",
-      "".genshin_art"",
-      "".feixiaoqiu"",
-      "".wiki"",
-      "".danjixiazai"",
-      "".fankui"",
-      "".enindex-btn"",
-      "".jpindex-btn""
-    ].forEach(className => {
-      document
-        .querySelector(className)
-        .style
-        .display = ""none""
-    });
-    document.body.appendChild(APP_LOGO_CONTAINER);
-  }
-
-  _hookMapEmitter() {
-    const MAP_DOCUMENT_NODE = document.querySelector('#map');
-    const MAP_AREALIST = document.querySelector('.area-list-containor');
-
-
-    if (!MAP_DOCUMENT_NODE) {
-      console.error(`[${INJECT_NAME}] Map container can't found!`);
-      return;
+        if (map && L) this._init();
+        else window.addEventListener('load', () => {
+            this._init()
+        });
     }
 
-    const cancelTracking = () => {
-      this.track(false);
+    _init() {
+        if (!map || !L) return;
+
+        this.GS_MAP = map;
+        this.GS_L = L;
+
+        this._initMarker();
+        this._initStyle();
+        this._pageStyleRebuild();
+        this._initTrackButton();
+        this._hookMapEmitter();
+
+
+        console.warn(`[${INJECT_NAME}] Injected!`);
     }
 
-    // cancel tracking
-    MAP_DOCUMENT_NODE.addEventListener('mousedown', cancelTracking);
-    MAP_AREALIST.addEventListener('click', cancelTracking);
-    MAP_DOCUMENT_NODE.addEventListener('wheel', cancelTracking);
-  }
-
-  _initMarker() {
-    const _MARKER = L
-      .divIcon({
-        iconSize: [
-          INJECT_ICON_CONFIG.width,
-          INJECT_ICON_CONFIG.height
-        ],
-        className: 'user-position',
-        alt: '',
-      });
-
-    this.GS_USER_MARKER = this.GS_L
-      .marker([0, 0], { icon: _MARKER })
-      .addTo(this.GS_MAP);
-  }
-
-  _initStyle() {
-    document.head.appendChild(MARKER_STYLE);
-  }
-
-  _initTrackButton() {
-    document.body.appendChild(USER_POSITION_FOLLOW_BUTTON);
-
-    // follow
-    USER_POSITION_FOLLOW_BUTTON.addEventListener('click', (e) => {
-      this.track(!this.GS_USER_TRACKING);
-    })
-  }
-
-  _setProperty(key, value) {
-    document.documentElement.style.setProperty(key, value);
-  }
-
-  getTrackState() {
-    return this.GS_USER_TRACKING;
-  }
-
-  getVisible() {
-    return this.GS_USER_MARKER_VISIBLE;
-  }
-
-  visible(visible = true) {
-    this.GS_USER_MARKER_VISIBLE = visible;
-    this._setProperty('--cv-marker-display', visible ? 'block' : 'none');
-    this._setProperty('--cv-marker-track-display', visible ? 'flex' : 'none');
-
-  }
-
-  track(track = true) {
-    this.GS_USER_TRACKING = track;
-    this.updatePosition({});
-
-    this._setProperty('--cv-marker-track-saturate', `${track ? 100 : 0}%`);
-  }
-
-  updatePosition({ x, y, deg }) {
-    const _x = x ? x : this._last_x;
-    const _y = y ? y : this._last_y;
-    const _deg = deg ? deg : this._last_deg;
-
-    this._last_x = _x;
-    this._last_y = _y;
-    this._last_deg = _deg;
-    this.GS_USER_MARKER.setLatLng([_x, _y]);
-
-    this._setProperty('--cv-marker-rotate', `${-_deg}deg`);
-
-    if (this.GS_USER_TRACKING) {
-      this.GS_MAP.panTo([_x, _y])
+    _pageStyleRebuild() {
+        [
+            "".leaflet-control-attribution"",
+            "".genshin_pub"",
+            "".genshin_art"",
+            "".feixiaoqiu"",
+            "".wiki"",
+            "".danjixiazai"",
+            "".fankui"",
+            "".enindex-btn"",
+            "".jpindex-btn""
+        ].forEach(className => {
+            document
+                .querySelector(className)
+                .style
+                .display = ""none""
+        });
+        document.body.appendChild(APP_LOGO_CONTAINER);
     }
-  }
 
-  updateFov(fov) {
-    this._setProperty('--cv-marker-fov-rotate', `${-fov-45}deg`);
-  }
+    _hookMapEmitter() {
+        const MAP_DOCUMENT_NODE = document.querySelector('#map');
+        const MAP_AREALIST = document.querySelector('.area-list-containor');
+
+
+        if (!MAP_DOCUMENT_NODE) {
+            console.error(`[${INJECT_NAME}] Map container can't found!`);
+            return;
+        }
+
+        const cancelTracking = () => {
+            this.track(false);
+        }
+
+        // cancel tracking
+        MAP_DOCUMENT_NODE.addEventListener('mousedown', cancelTracking);
+        MAP_AREALIST.addEventListener('click', cancelTracking);
+        MAP_DOCUMENT_NODE.addEventListener('wheel', cancelTracking);
+    }
+
+    _initMarker() {
+        const _MARKER = L
+            .divIcon({
+                iconSize: [
+                    INJECT_ICON_CONFIG.width,
+                    INJECT_ICON_CONFIG.height
+                ],
+                className: 'user-position',
+                alt: '',
+            });
+
+        this.GS_USER_MARKER = this.GS_L
+            .marker([0, 0], { icon: _MARKER })
+            .addTo(this.GS_MAP);
+    }
+
+    _initStyle() {
+        document.head.appendChild(MARKER_STYLE);
+    }
+
+    _initTrackButton() {
+        document.body.appendChild(USER_POSITION_FOLLOW_BUTTON);
+
+        // follow
+        USER_POSITION_FOLLOW_BUTTON.addEventListener('click', (e) => {
+            this.track(!this.GS_USER_TRACKING);
+        })
+    }
+
+    _setProperty(key, value) {
+        document.documentElement.style.setProperty(key, value);
+    }
+
+    getTrackState() {
+        return this.GS_USER_TRACKING;
+    }
+
+    getVisible() {
+        return this.GS_USER_MARKER_VISIBLE;
+    }
+
+    visible(visible = true) {
+        this.GS_USER_MARKER_VISIBLE = visible;
+        this._setProperty('--cv-marker-display', visible ? 'block' : 'none');
+        this._setProperty('--cv-marker-track-display', visible ? 'flex' : 'none');
+
+    }
+
+    track(track = true) {
+        this.GS_USER_TRACKING = track;
+        this.updatePosition({});
+
+        this._setProperty('--cv-marker-track-saturate', `${track ? 100 : 0}%`);
+    }
+
+    updatePosition({ x, y, deg }) {
+        const _x = x ? x : this._last_x;
+        const _y = y ? y : this._last_y;
+        const _deg = deg ? deg : this._last_deg;
+
+        this._last_x = _x;
+        this._last_y = _y;
+        this._last_deg = _deg;
+        this.GS_USER_MARKER.setLatLng([_x, _y]);
+
+        this._setProperty('--cv-marker-rotate', `${_deg}deg`);
+
+        if (this.GS_USER_TRACKING) {
+            this.GS_MAP.panTo([_x, _y])
+        }
+    }
+
+    updateFov(fov) {
+        this._setProperty('--cv-marker-fov-rotate', `${fov}deg`);
+    }
 };
 
 window.__CVAutoTrack__ = new CVAutoTrack();
 
-window.__CVAutoTrack__.visible();
-                        ";
-            webView.ExecuteScriptAsync(js);
-
-
-            messageWebSocket = new Windows.Networking.Sockets.MessageWebSocket();
-            messageWebSocket.Control.MessageType = Windows.Networking.Sockets.SocketMessageType.Utf8;
-            messageWebSocket.MessageReceived += MessageWebSocket_MessageReceived;
-            messageWebSocket.SetRequestHeader("Origin", "http://localhost:32333");
-            
-            Task connectTask = messageWebSocket.ConnectAsync(new Uri(urlws + token)).AsTask();
-
-                connectTask.ContinueWith(_ =>
-                  {
-                      {
-                          string id = DateTime.Now.ToString() + Math.Round(1000 + Math.Round((decimal)100, 0) * 1000).ToString();
-                          JsonObject reqjson = new JsonObject();
-                          reqjson.Add("id", JsonValue.CreateStringValue(id));
-                          reqjson.Add("action", JsonValue.CreateStringValue("api"));
-                          JsonObject data = new JsonObject();
-                          data.Add("url", JsonValue.CreateStringValue("/api/cvautotrack"));
-                          data.Add("method", JsonValue.CreateStringValue("POST"));
-                          data.Add("body", JsonValue.CreateStringValue(@"{""action"":""load"",""data"":[]}"));
-                          reqjson.Add("data", data);
-                          SendMessageUsingMessageWebSocketAsync(reqjson.ToString());
-                      }
-                      {
-                          string id = DateTime.Now.ToString() + Math.Round(1000 + Math.Round((decimal)100, 0) * 1000).ToString();
-                          JsonObject reqjson = new JsonObject();
-                          reqjson.Add("id", JsonValue.CreateStringValue(id));
-                          reqjson.Add("action", JsonValue.CreateStringValue("api"));
-                          JsonObject data = new JsonObject();
-                          data.Add("url", JsonValue.CreateStringValue("/api/cvautotrack"));
-                          data.Add("method", JsonValue.CreateStringValue("POST"));
-                          data.Add("body", JsonValue.CreateStringValue(@"{""action"":""init"",""data"":[]}"));
-                          reqjson.Add("data", data);
-                          SendMessageUsingMessageWebSocketAsync(reqjson.ToString());
-                      }
-                      {
-                          string id = DateTime.Now.ToString() + Math.Round(1000 + Math.Round((decimal)100, 0) * 1000).ToString();
-                          JsonObject reqjson = new JsonObject();
-                          reqjson.Add("id", JsonValue.CreateStringValue(id));
-                          reqjson.Add("action", JsonValue.CreateStringValue("api"));
-                          JsonObject data = new JsonObject();
-                          data.Add("url", JsonValue.CreateStringValue("/api/cvautotrack"));
-                          data.Add("method", JsonValue.CreateStringValue("POST"));
-                          data.Add("body", JsonValue.CreateStringValue(@"{""action"":""sub"",""data"":[]}"));
-                          reqjson.Add("data", data);
-                          SendMessageUsingMessageWebSocketAsync(reqjson.ToString());
-                      }
-                  });
-        }
-
-        private async Task SendMessageUsingMessageWebSocketAsync(string message)
-        {            // 检查token是否有效
-            if (token != "")
-            {
-                using (var dataWriter = new DataWriter(this.messageWebSocket.OutputStream))
-                {
-                    dataWriter.WriteString(message);
-                    await dataWriter.StoreAsync();
-                    dataWriter.DetachStream();
-                }
-            }
-            else
-            {
-                token = await getTokenAsync();
-            }
-        }
-        private void MessageWebSocket_MessageReceived(Windows.Networking.Sockets.MessageWebSocket sender, Windows.Networking.Sockets.MessageWebSocketMessageReceivedEventArgs args)
-        {
-            // 获取接收到的字符串
-            using (DataReader dataReader = args.GetDataReader())
-            {
-                //字符串解析为json
-                string json = dataReader.ReadString(dataReader.UnconsumedBufferLength);
-                
-                double x = 0;
-                double y = 0;
-                double a = 0;
-                double a2 = 0;
-
-                // 解析json中的action是否为cvautotrack
-                JsonObject body = JsonObject.Parse(json);
-                string action = body.GetNamedString("action");
-                if (action == "cvautotrack")
-                {
-                    // 解析json中的data，如果不为空就解析其中的x,y,a,a2
-                    JsonArray data = body.GetNamedArray("data");
-                    x = data[0].GetNumber();
-                    y = data[1].GetNumber();
-                    a = data[2].GetNumber();
-                    a2 = data[3].GetNumber();
-
-                    updateAvatarInfo(x, y, a, a2);
-
-
-                }
-            }
-
-
-        }
-        private async void updateAvatarInfo(double x, double y, double a, double a2)
-        {
-            x = x / 1.5;
-            y = y / 1.5;
-
-            string js = "window.__CVAutoTrack__.updatePosition({ x: " + x.ToString() + ", y:" + y.ToString() + ", deg: " + a.ToString() + "});\n"
-                + "window.__CVAutoTrack__.updateFov(" + a2.ToString() + ");";
-
-            bool uiAccess = webView.Dispatcher.HasThreadAccess;
-            if (uiAccess)
-                webView.ExecuteScriptAsync(js);
-            else
-                await webView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
-                    webView.ExecuteScriptAsync(js);
-                });
-
-        }
-
-        /// <summary>
-        /// 获取椰羊服务端的token
-        /// </summary>
-        /// <returns>token</returns>
-        private async Task<string> getTokenAsync()
-        {
-            string url = "http://localhost:32333/token";
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    var kvp = new List<KeyValuePair<string, string>>
-                    { };
-                    client.DefaultRequestHeaders.Add(new KeyValuePair<string, string>("Origin", "http://localhost:32333"));
-                    HttpResponseMessage response = await client.PostAsync(new Uri(url), new HttpFormUrlEncodedContent(kvp));
-                    if (response.EnsureSuccessStatusCode().StatusCode.ToString() == "Created")
-                    {
-                        string responseBody = await response.Content.ReadAsStringAsync();
-                        JsonObject body = JsonObject.Parse(responseBody);
-                        string token = body["token"].GetString();
-                        return token;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return "";
-                }
-            }
-            return "";
-        }
-    }
-}
