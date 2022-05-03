@@ -9,8 +9,6 @@ branches:
 
 environment:
     MyProjectDir: C:\projects\genshinimpact-kongyingmap-xboxgamebar
-    OpenCvDir: C:\projects\opencv\
-    OpenCvUrl: https://github.com/GengGode/opencv450Release/releases/download/v1.0/Release.zip
     ProjectName: 空荧酒馆-悬浮窗
     ProJectExeName: 空荧酒馆-悬浮窗
 skip_tags: true
@@ -19,10 +17,11 @@ install:
     - ps: $env:TIME_STRING=(get-date -UFormat "%Y%m%d%a").ToString()
 
 before_build: 
-    #- dir  %MyProjectDir%
+    - dir  %MyProjectDir%
     #- dir  %OpenCvDir%
 
 build_script:
+    - 
     - MSBuild %MyProjectDir%\*.sln
     
 after_build:
