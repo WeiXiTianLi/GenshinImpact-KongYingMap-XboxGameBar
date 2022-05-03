@@ -8,11 +8,11 @@ branches:
     - master
 
 environment:
-    MyProjectDir: C:\projects\¿ÕÓ«¾Æ¹İ-Ğü¸¡´°\
+    MyProjectDir: C:\projects\ç©ºè§é…’é¦†-æ‚¬æµ®çª—\
     OpenCvDir: C:\projects\opencv\
     OpenCvUrl: https://github.com/GengGode/opencv450Release/releases/download/v1.0/Release.zip
-    ProjectName: ¿ÕÓ«¾Æ¹İ-Ğü¸¡´°
-    ProJectExeName: ¿ÕÓ«¾Æ¹İ-Ğü¸¡´°
+    ProjectName: ç©ºè§é…’é¦†-æ‚¬æµ®çª—
+    ProJectExeName: ç©ºè§é…’é¦†-æ‚¬æµ®çª—
 skip_tags: true
   
 install:
