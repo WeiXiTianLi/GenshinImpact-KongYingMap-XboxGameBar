@@ -8,15 +8,15 @@
   IgnorableNamespaces="uap uap3 mp">
 
   <Identity
-    Name="WeiXiTianLi.Xbox.KongYingJiuGuan"
-    Publisher="CN=维系天理"
-    Version="1.2.0.0" />
+    Name="WeiXiTianLi.Xbox.KongYingJiuGuanOverlay"
+    Publisher="CN=90F76808-35EC-49DF-90DD-BC842577906F"
+    Version="1.2.13.0" />
 
-  <mp:PhoneIdentity PhoneProductId="d8035bca-2003-4466-848c-83ee3b600930" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="6c7946fa-bb8c-46b9-8268-c3f1a8067021" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>空荧酒馆-悬浮窗</DisplayName>
-    <PublisherDisplayName>YuSuiXian</PublisherDisplayName>
+    <PublisherDisplayName>维系天理</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
