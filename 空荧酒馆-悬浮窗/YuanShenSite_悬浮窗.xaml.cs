@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -17,6 +19,11 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.Web.Http;
+using Microsoft.Gaming.XboxGameBar;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.Web.WebView2.Core;
+using Windows.ApplicationModel;
+using Windows.UI.Popups;
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 
@@ -30,10 +37,359 @@ namespace 空荧酒馆_悬浮窗
         public string token = "";
         string urlws = "ws://localhost:32333/ws/";
         public Windows.Networking.Sockets.MessageWebSocket messageWebSocket;
+
+        public bool isInGameBar = false;
+        public bool hasInputBox = false;
+        public int origWidth = 0;
+        public int origHeight = 0;
+        public bool isOversea = false;
+        public string mapCN = "https://yuanshen.site/index.html";
+        public string mapOS = "https://yuanshen.site/index_en.html";
+        public XboxGameBarWidget gamebarWindow = null;
+
         public YuanShenSite_悬浮窗()
         {
             this.InitializeComponent();
-            this.Loaded += MainPage_Loaded;
+            WebView2Init();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            var param = e.Parameter;
+            if (param != null && typeof(XboxGameBarWidget) == param.GetType())
+            {
+                isInGameBar = true;
+                gamebarWindow=param as XboxGameBarWidget;
+            }
+        }
+
+        public IAsyncAction OpenInFullTrust(string url)
+        {
+            ApplicationData.Current.LocalSettings.Values["parameters"] = url;
+            return FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+        }
+
+        /// <summary>
+        /// 切换最大化模式
+        /// </summary>
+        public async void ToggleMaximize()
+        {
+            if(gamebarWindow==null)return;
+            if (origHeight > 0 && origWidth > 0)
+            {
+                Size size = new Size(origWidth, origHeight);
+                bool res = await gamebarWindow.TryResizeWindowAsync(size);
+                await webView.CoreWebView2.ExecuteScriptAsync("consle.log('RESIZE:" + res + "')");
+                origWidth = 0;
+                origHeight = 0;
+            }
+            else
+            {
+                string ret=await webView.CoreWebView2.ExecuteScriptAsync("({w:window.innerWidth,h:window.innerHeight,mh:screen.availHeight-100,mw:screen.availWidth*0.9})");
+                var json = JsonObject.Parse("ret");
+                origHeight = (int) json.GetNamedNumber("h");
+                origWidth = (int) json.GetNamedNumber("w");
+                Size size = new Size(json.GetNamedNumber("mw"), json.GetNamedNumber("mh"));
+                bool res = await gamebarWindow.TryResizeWindowAsync(size);
+                await webView.CoreWebView2.ExecuteScriptAsync("consle.log('RESIZE:" + res + "')");
+            }
+        }
+
+        /// <summary>
+        /// 初始化webview2的js
+        /// </summary>
+        public async void WebView2Init()
+        {
+            await webView.EnsureCoreWebView2Async();
+            // 打开地图的网站
+            //webView.CoreWebView2.Navigate(isOversea ? mapOS : mapCN);
+
+            // 给网页注入定制化js
+            // TODO: js内容
+            await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                window.alert = (msg)=>{window.chrome.webview.postMessage({action:'ALERT',msg:msg.toString()})};
+                !function(){const s = document.createElement('script')
+
+                s.src = 'http://8.134.219.60:5244/WeiXiTianLi/download/KYJG-XuanFuChuang/js/last/cvAutoTrack_impl.js?t='+Math.floor(new Date().getTime()/(1000*3600*24))*(3600*24)
+
+                s.onerror = () => { alert('共享地图加载失败，请检查是否可以连接到 https://zhiqiong.vercel.app '); }
+                window.addEventListener('DOMContentLoaded',()=>{document.head.appendChild(s);window.addEventListener('contextmenu', (e)=>{e.stopImmediatePropagation()},true);})}()
+                document.addEventListener('focus',(e)=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')window.chrome.webview.postMessage({action:'INPUT'})}, true);
+                window.onload = ()=>{window.chrome.webview.postMessage({action:'LOAD'})};
+            ");
+            webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequestedAsync;
+            webView.CoreWebView2.ContextMenuRequested += CoreWebView2_ContextMenuRequested;
+            webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
+            webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceivedAsync;
+            webView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+            webView.CoreWebView2.AddWebResourceRequestedFilter("http://localhost:32333/*",CoreWebView2WebResourceContext.All);
+            webView.CoreWebView2.AddWebResourceRequestedFilter("https://yuanshen.site/index.html*", CoreWebView2WebResourceContext.All);
+
+            webView.CoreWebView2.Navigate(isOversea?mapOS:mapCN);
+
+        }
+        /// <summary>
+        /// 设置Header
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void CoreWebView2_WebResourceRequested(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebResourceRequestedEventArgs args)
+        {
+           if (args.Request.Uri.ToString().Contains("yuanshen.site/index"))
+           {
+               //
+               var def = args.GetDeferral();
+               var client = new HttpClient();
+               var response = client.GetAsync(new Uri(args.Request.Uri)).GetAwaiter().GetResult();
+               var responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+               //
+               responseContent = responseContent.Replace("-Policy", "");
+               //
+               InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
+               //
+               DataWriter writer = new DataWriter(stream);
+               writer.WriteString(responseContent);
+               writer.StoreAsync().GetAwaiter().GetResult();
+                //
+                CoreWebView2WebResourceResponse newres = webView.CoreWebView2.Environment.CreateWebResourceResponse(stream, 200, "OK", "Content-Type: text/html");
+                args.Response = newres;
+               def.Complete();
+               return;
+           }
+           args.Request.Headers.SetHeader("Origin", "@kyjg");
+
+        }
+
+        /// <summary>
+        /// 获取Handle信息
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private async void CoreWebView2_WebMessageReceivedAsync(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            string jsonStr=args.WebMessageAsJson;
+            var jsonObject = JsonObject.Parse(jsonStr);
+            // 获取action
+            string action = jsonObject.GetNamedString("action");
+            // 如果 action 等于 PLUGIN
+            if (action == "PLUGIN")
+            {
+                string pluginToken = jsonObject.GetNamedString("token");
+                string pluginQuery = pluginToken == "" ? "" : ("?local-auth=" + pluginToken);
+                string pluginLaunch = "cocogoat-control://launch" + pluginQuery;
+                if (this.isInGameBar)
+                {
+                    await OpenInFullTrust(pluginLaunch);
+                }
+                else
+                {
+                    var uri = new Uri(pluginLaunch);
+                    await Windows.System.Launcher.LaunchUriAsync(uri);
+                }
+            }
+            // 如果 action 等于 INPUT
+            if (action == "INPUT" && isInGameBar && !hasInputBox)
+            {
+                InputBox();
+            }
+            // 如果 action 等于 MAXIMIZE
+            if (action=="MAXIMIZE" && isInGameBar)
+            {
+                ToggleMaximize();
+            }
+            // 如果 action 等于 LOAD
+            if (action == "LOAD")
+            {
+                // 检查更新
+                await webView.CoreWebView2.ExecuteScriptAsync(@"
+                    console.log('Zhiqiong-UWP: Load');
+                    webControlMAP.ev.on('hotkey',(e)=>{if(e==='AltZ')window.chrome.webview.postMessage({action:'MAXIMIZE'})})
+                    fetch('https://77.cocogoat.work/upgrade/zhiqiong-uwp.json?t='+Math.round(Date.now()/1000/3600)).then(e=>e.json()).then(e=>{
+                        const targetVer = e.version;
+                        const curVer = (navigator.userAgent.match(/zhiqiong-uwp\/([0-9.]*)/)||[])[1]||'0.0.0.0'
+                        if($map.control.versionCompare(targetVer,curVer)>0){
+                            window.chrome.webview.postMessage({action:'COPYALERT',url:'https://zhiqiong.cocogoat.work',msg:'发现新版本 v'+targetVer+'（当前版本 v'+curVer+'），请按Win+G打开Xbox Game Bar后复制下方地址手动下载更新'})
+                        }
+                    })
+                ");
+            }
+            // 如果 action 等于 ALERT
+            if (action == "ALERT")
+            {
+                string msg = jsonObject.GetNamedString("msg");
+                await new MessageDialog(msg).ShowAsync();
+
+            }
+            // 如果 action 等于 COPYALERT
+            if (action == "COPYALERT")
+            {
+                ContentDialog dialog = new ContentDialog();
+                TextBox inputTextBox = new TextBox();
+                dialog.Content = inputTextBox;
+                inputTextBox.Text = jsonObject.GetNamedString("url");
+                dialog.Title = jsonObject.GetNamedString("msg");
+                dialog.PrimaryButtonText = "复制并关闭";
+                dialog.SecondaryButtonText = "取消";
+                if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                {
+                    // copy to clipboard
+                    Windows.ApplicationModel.DataTransfer.DataPackage dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                    dataPackage.SetText(inputTextBox.Text);
+                    Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 改变UserAgent
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void CoreWebView2_NavigationStarting(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs args)
+        {
+            // 获取版本 version
+            var version = Windows.ApplicationModel.Package.Current.Id.Version;
+            var settings = webView.CoreWebView2.Settings;
+            string strver = string.Format("{0}.{1}.{2}", version.Major, version.Minor, version.Build);
+            // don't change if modified
+            if (settings.UserAgent.Contains("weixitianli-kongyingjiuguan-uwp/"))
+            {
+                return;
+            }
+            settings.UserAgent = settings.UserAgent + " weixitianli-kongyingjiuguan-uwp/" + strver;
+            settings.UserAgent = settings.UserAgent + " weixitianli-kongyingjiuguan-uwp/" + (isInGameBar?"gamebar":"webview");
+        }
+
+        /// <summary>
+        /// 更改上下文菜单
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void CoreWebView2_ContextMenuRequested(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2ContextMenuRequestedEventArgs args)
+        {
+            IList<CoreWebView2ContextMenuItem> menuList = args.MenuItems;
+            // 移除
+            bool hasSelectAll = false;
+            bool hasReload = false;
+            string[] ignoredList =
+            {
+                "other", "saveImageAs", "copyImage", "copyImageLocation", "createQrCode", "saveAs", "print", "back",
+                "forward"
+            };
+            for (int index = 0; index < menuList.Count; index++)
+            {
+                if (ignoredList.Contains(menuList[index].Name))
+                {
+                    menuList.RemoveAt(index);
+                    index--;
+                }
+                else if (menuList[index].Name == "selectAll") 
+                {
+                    hasSelectAll = true;
+                }
+                else if (menuList[index].Name == "reload") 
+                {
+                    hasReload = true;
+                }
+            }
+
+            if (hasSelectAll && !hasReload)
+            {
+                // 非输入元素上无ctxmenu
+                args.Handled = true;
+            }
+            // 添加
+            CoreWebView2ContextMenuItem subItem =
+                    webView.CoreWebView2.Environment.CreateContextMenuItem("切换到" + (isOversea ? "米游社" : "HoyoLab"),
+                null,CoreWebView2ContextMenuItemKind.Command);
+            subItem.CustomItemSelected += delegate(CoreWebView2ContextMenuItem send, object e)
+            {
+                isOversea = !isOversea;
+                webView.CoreWebView2.Navigate(isOversea ? mapOS : mapCN);
+            };
+            menuList.Insert(0, subItem);
+        }
+
+        /// <summary>
+        /// 改为打开默认浏览器
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private async void CoreWebView2_NewWindowRequestedAsync(Microsoft.Web.WebView2.Core.CoreWebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NewWindowRequestedEventArgs args)
+        {            
+            // prevent default
+            args.Handled = true;
+            if (this.isInGameBar)
+            {
+                await OpenInFullTrust(args.Uri);
+            }
+            else
+            {
+                var uri = new Uri(args.Uri);
+                await Windows.System.Launcher.LaunchUriAsync(uri);
+            }
+        }
+
+        /// <summary>
+        /// 输入框调整
+        /// </summary>
+        public async void InputBox()
+        {
+            hasInputBox = true;
+            // Get value of current input
+            var jCurrentValue = await webView.CoreWebView2.ExecuteScriptAsync(@"(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA')?document.activeElement.value:''");
+            var currentValue = Windows.Data.Json.JsonValue.Parse(jCurrentValue).GetString();
+            // Get type of current input
+            var jCurrentType = await webView.CoreWebView2.ExecuteScriptAsync(@"(document.activeElement.tagName==='INPUT')?document.activeElement.type:'other'");
+            var currentType = Windows.Data.Json.JsonValue.Parse(jCurrentType).GetString();
+            // Prompt using ContentDialog
+            ContentDialog dialog = new ContentDialog();
+            if (currentType == "password")
+            {
+                PasswordBox inputTextBox = new PasswordBox();
+                dialog.Content = inputTextBox;
+                inputTextBox.Password = currentValue;
+            }
+            else
+            {
+                TextBox inputTextBox = new TextBox();
+                dialog.Content = inputTextBox;
+                inputTextBox.Text = currentValue;
+            }
+            dialog.Title = "请按Win+G打开Xbox Game Bar后，在此输入" + (currentType == "password" ? "密码" : "内容");
+            dialog.IsSecondaryButtonEnabled = true;
+            dialog.PrimaryButtonText = "输入";
+            dialog.SecondaryButtonText = "取消";
+            IAsyncOperation<ContentDialogResult> tsk = dialog.ShowAsync();
+            if (await tsk == ContentDialogResult.Primary)
+            {
+                // escape single quote
+                string escapedInput = "";
+                if (currentType == "password")
+                {
+                    PasswordBox inputTextBox = (PasswordBox)dialog.Content;
+                    escapedInput = inputTextBox.Password.Replace("'", "\\'");
+                }
+                else
+                {
+                    TextBox inputTextBox = (TextBox)dialog.Content;
+                    escapedInput = inputTextBox.Text.Replace("'", "\\'");
+                }
+                await webView.CoreWebView2.ExecuteScriptAsync(@"if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA'){
+                            document.activeElement.value = '" + escapedInput + @"';
+                            document.activeElement.dispatchEvent(new Event('input'));
+                            document.activeElement.blur();
+                        }");
+            }
+            else
+            {
+                // cancel
+                await webView.CoreWebView2.ExecuteScriptAsync(@"if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA'){
+                            document.activeElement.blur();
+                        }");
+            }
+            hasInputBox = false;
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)

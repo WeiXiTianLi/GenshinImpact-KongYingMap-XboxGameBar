@@ -246,6 +246,11 @@
   <ItemGroup>
     <None Include="空荧酒馆-悬浮窗_TemporaryKey.pfx" />
   </ItemGroup>
+  <ItemGroup>
+    <SDKReference Include="WindowsDesktop, Version=10.0.19041.0">
+      <Name>Windows Desktop Extensions for the UWP</Name>
+    </SDKReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

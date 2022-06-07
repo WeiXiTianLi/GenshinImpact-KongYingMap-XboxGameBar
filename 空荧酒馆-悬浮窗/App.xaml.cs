@@ -34,6 +34,7 @@ namespace 空荧酒馆_悬浮窗
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            Environment.SetEnvironmentVariable("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-web-security");
         }
 
         protected override void OnActivated(IActivatedEventArgs args)
