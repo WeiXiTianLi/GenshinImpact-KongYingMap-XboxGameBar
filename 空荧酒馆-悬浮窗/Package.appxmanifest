@@ -10,7 +10,7 @@
   <Identity
     Name="WeiXiTianLi.Xbox.KongYingJiuGuanOverlay"
     Publisher="CN=90F76808-35EC-49DF-90DD-BC842577906F"
-    Version="1.2.13.0" />
+    Version="1.3.19.0" />
 
   <mp:PhoneIdentity PhoneProductId="6c7946fa-bb8c-46b9-8268-c3f1a8067021" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

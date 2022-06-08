@@ -104,13 +104,15 @@ namespace 空荧酒馆_悬浮窗
             // 打开地图的网站
             //webView.CoreWebView2.Navigate(isOversea ? mapOS : mapCN);
 
+            //s.src = 'http://8.134.219.60:5244/WeiXiTianLi/download/KYJG-XuanFuChuang/js/last/cvAutoTrack_impl.js?t='+Math.floor(new Date().getTime()/(1000*3600*24))*(3600*24)
+            
             // 给网页注入定制化js
             // TODO: js内容
             await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
                 window.alert = (msg)=>{window.chrome.webview.postMessage({action:'ALERT',msg:msg.toString()})};
                 !function(){const s = document.createElement('script')
 
-                s.src = 'http://8.134.219.60:5244/WeiXiTianLi/download/KYJG-XuanFuChuang/js/last/cvAutoTrack_impl.js?t='+Math.floor(new Date().getTime()/(1000*3600*24))*(3600*24)
+                s.src = 'https://zhiqiong.vercel.app/sharedmap.user.js?t='+Math.floor(new Date().getTime()/(1000*3600*24))*(3600*24)
 
                 s.onerror = () => { alert('共享地图加载失败，请检查是否可以连接到 https://zhiqiong.vercel.app '); }
                 window.addEventListener('DOMContentLoaded',()=>{document.head.appendChild(s);window.addEventListener('contextmenu', (e)=>{e.stopImmediatePropagation()},true);})}()
@@ -301,12 +303,14 @@ namespace 空荧酒馆_悬浮窗
             }
             // 添加
             CoreWebView2ContextMenuItem subItem =
-                    webView.CoreWebView2.Environment.CreateContextMenuItem("切换到" + (isOversea ? "米游社" : "HoyoLab"),
+                    webView.CoreWebView2.Environment.CreateContextMenuItem("切换到" + (isOversea ? "中文" : "Enghish"),
                 null,CoreWebView2ContextMenuItemKind.Command);
             subItem.CustomItemSelected += delegate(CoreWebView2ContextMenuItem send, object e)
             {
                 isOversea = !isOversea;
                 webView.CoreWebView2.Navigate(isOversea ? mapOS : mapCN);
+
+                
             };
             menuList.Insert(0, subItem);
         }
