@@ -11,9 +11,7 @@
 
     <Grid Background="#00000000" >
         <Border Margin="0 0 0 0" CornerRadius="30" BorderBrush="Transparent">
-            <controls:WebView2 x:Name="webView" Source="https://yuanshen.site" />
+            <controls:WebView2 x:Name="webView" Source="https://v3.yuanshen.site" />
         </Border>
-     
-
     </Grid>
 </Page>

@@ -43,8 +43,8 @@ namespace 空荧酒馆_悬浮窗
         public int origWidth = 0;
         public int origHeight = 0;
         public bool isOversea = false;
-        public string mapCN = "https://yuanshen.site/index.html";
-        public string mapOS = "https://yuanshen.site/index_en.html";
+        public string mapCN = "https://v3.yuanshen.site";
+        public string mapOS = "https://v3.yuanshen.site/index_en.html";
         public XboxGameBarWidget gamebarWindow = null;
 
         public YuanShenSite_悬浮窗()
@@ -112,9 +112,9 @@ namespace 空荧酒馆_悬浮窗
                 window.alert = (msg)=>{window.chrome.webview.postMessage({action:'ALERT',msg:msg.toString()})};
                 !function(){const s = document.createElement('script')
 
-                s.src = 'https://zhiqiong.vercel.app/sharedmap.user.js?t='+Math.floor(new Date().getTime()/(1000*3600*24))*(3600*24)
+                s.src = 'https://zhiqiong.cocogoat.work/sharedmap.user.js?t='+Math.floor(new Date().getTime()/(1000*3600*24))*(3600*24)
 
-                s.onerror = () => { alert('共享地图加载失败，请检查是否可以连接到 https://zhiqiong.vercel.app '); }
+                s.onerror = () => { alert('共享地图加载失败，请检查是否可以连接到 https://zhiqiong.cocogoat.work '); }
                 window.addEventListener('DOMContentLoaded',()=>{document.head.appendChild(s);window.addEventListener('contextmenu', (e)=>{e.stopImmediatePropagation()},true);})}()
                 document.addEventListener('focus',(e)=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')window.chrome.webview.postMessage({action:'INPUT'})}, true);
                 window.onload = ()=>{window.chrome.webview.postMessage({action:'LOAD'})};
